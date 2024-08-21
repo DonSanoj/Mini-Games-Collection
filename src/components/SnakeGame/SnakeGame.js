@@ -17,6 +17,13 @@ export default function SnakeGame() {
     const [cellSize, setCellSize] = useState(15);
     const [maxBombs, setMaxBombs] = useState(6);
 
+    //Time and marks
+    const [startTime, setStartTime] = useState(null);
+    const [marks, setMarks] = useState(0);
+
+    const [hasWon, setHasWon] = useState(false);
+    const [winningMarks, setWinningMarks] = useState(100);
+
     //Floating Status Box Start
     const [showFloatingBox, setShowFloatingBox] = useState(true);
     const [position, setPosition] = useState({ top: '20px', left: '20px' });
@@ -66,7 +73,7 @@ export default function SnakeGame() {
         const context = canvas.getContext("2d");
 
         const updateGame = () => {
-            if (gameOver) return;
+            if (gameOver || hasWon) return;
 
             const newSnake = [...snake];
             const head = { ...newSnake[0] };
@@ -100,6 +107,19 @@ export default function SnakeGame() {
                     x: Math.floor(Math.random() * gridSize),
                     y: Math.floor(Math.random() * gridSize)
                 });
+
+                //Update marks
+                setMarks(marks => {
+                    const newMarks = marks + 2;
+                    if (newMarks >= winningMarks) {
+                        setHasWon(true);
+                        setGameOver(true);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                    return newMarks;
+                })
 
                 // Generate new bombs
                 const newBombs = [];
@@ -186,28 +206,51 @@ export default function SnakeGame() {
         }
     }, [direction, gameStarted]);
 
+    //Game Mode [Easy, Normal, Hard]
     const startGame = (selectedDifficulty) => {
+        setDifficulty(selectedDifficulty);
         switch (selectedDifficulty) {
             case "easy":
                 setGridSize(30);
                 setCellSize(15);
                 setMaxBombs(4);
+                setWinningMarks(100);
                 break;
+
             case "normal":
                 setGridSize(25);
                 setCellSize(18);
                 setMaxBombs(6);
+                setWinningMarks(50);
                 break;
+
             case "hard":
                 setGridSize(20);
                 setCellSize(20);
                 setMaxBombs(8);
+                setWinningMarks(25)
                 break;
+
             default:
                 break;
         }
+
         setGameStarted(true);
+        setStartTime(new Date());
     };
+
+    //Calculate the elapsed time
+    const getElapsedTime = () => {
+        if (startTime) {
+            const now = new Date();
+            const diff = now - startTime;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            return `${minutes}m ${seconds % 60}s`
+        }
+
+        return "0s";
+    }
 
     return (
         <div className="flex flex-col items-center justify-center h-screen">
@@ -265,11 +308,19 @@ export default function SnakeGame() {
                             }}
                             onMouseDown={handleMouseDown}
                         >
-                            <h1>Info</h1>
+                            <p><strong>Time Played:</strong> {getElapsedTime()}</p>
+                            <p><strong>Game Mode:</strong> {difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : "N/A"}</p>
+                            <p><strong>Marks:</strong> {marks}</p>
                         </div>
                     )}
 
-                    {gameOver && (
+                    {hasWon ? (
+                        <div className="absolute top-3 left-0 w-full flex items-center justify-center bg-opacity-50 z-30 transition-transform duration-700 ease-in-out transform">
+                            <div className="p-3 bg-[#eee] border rounded-lg shadow-xl text-center flex flex-row gap-4 items-center justify-center">
+                                <h2 className="text-lg text-green-500 font-bold">You Win!</h2>
+                            </div>
+                        </div>
+                    ) : gameOver && (
                         <div className={`absolute top-3 left-0 w-full flex items-center justify-center bg-opacity-50 z-30 transition-transform duration-700 ease-in-out transform`}>
                             <div className="p-3 bg-[#eee] border rounded-lg shadow-xl text-center flex flex-row gap-4 items-center justify-center">
                                 <h2 className="text-lg text-red-500">Game Over</h2>
@@ -282,6 +333,8 @@ export default function SnakeGame() {
                                         setDirection({ x: 1, y: 0 });
                                         setSpeed(80);  // Reset speed
                                         setGameOver(false);
+                                        setMarks(0);
+                                        setStartTime(new Date());
                                     }}
                                 >
                                     Restart Game
@@ -289,6 +342,7 @@ export default function SnakeGame() {
                             </div>
                         </div>
                     )}
+
                 </div>
             )}
         </div>
