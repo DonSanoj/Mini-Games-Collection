@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useRef } from "react";
 
@@ -14,9 +14,91 @@ const initialBoard = [
     [0, 0, 0, 0, 8, 0, 0, 7, 9],
 ];
 
+const solveSudoku = (board, callback, delay = 0) => {
+    const findEmptyCell = (board) => {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (board[row][col] === 0) {
+                    return [row, col];
+                }
+            }
+        }
+        return null;
+    };
+
+    const isValidMove = (board, row, col, num) => {
+        for (let i = 0; i < 9; i++) {
+            if (board[row][i] === num || board[i][col] === num) {
+                return false;
+            }
+        }
+
+        const startRow = Math.floor(row / 3) * 3;
+        const startCol = Math.floor(col / 3) * 3;
+        for (let i = startRow; i < startRow + 3; i++) {
+            for (let j = startCol; j < startCol + 3; j++) {
+                if (board[i][j] === num) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    };
+
+    const solve = (board, callback) => {
+        const emptyCell = findEmptyCell(board);
+        if (!emptyCell) {
+            callback(board);
+            return true;
+        }
+
+        const [row, col] = emptyCell;
+
+        for (let num = 1; num <= 9; num++) {
+            if (isValidMove(board, row, col, num)) {
+                board[row][col] = num;
+                callback(board);  // Update the board after placing a number
+
+                if (solve(board, callback)) {
+                    return true;
+                }
+
+                board[row][col] = 0;
+                callback(board);  // Update the board after backtracking
+            }
+        }
+
+        return false;
+    };
+
+    const animatedSolve = (board, callback, delay) => {
+        let i = 0;
+        const steps = [];
+
+        const recordStep = (board) => {
+            steps.push(JSON.parse(JSON.stringify(board)));
+        };
+
+        const executeStep = () => {
+            if (i < steps.length) {
+                callback(steps[i]);
+                i++;
+                setTimeout(executeStep, delay);
+            }
+        };
+
+        solve(board, recordStep);
+        executeStep();
+    };
+
+    animatedSolve(board, callback, delay);
+};
+
 export default function Sudoku() {
     const [board, setBoard] = useState(initialBoard);
     const [invalidCells, setInvalidCells] = useState({});
+    const [isBlocked, setIsBlocked] = useState(false);
     const cellRefs = useRef([...Array(9)].map(() => Array(9).fill(null)));
 
     const isValidMove = (board, row, col, num) => {
@@ -51,13 +133,16 @@ export default function Sudoku() {
 
             // Validate the move
             if (isValidMove(newBoard, row, col, value)) {
-                delete newInvalidCells[`${row}-${col}`]; // Remove from invalid cells
+                delete newInvalidCells[`${row}-${col}`];
+                setIsBlocked(false);  // Unlock all cells
             } else {
-                newInvalidCells[`${row}-${col}`] = true; // Mark as invalid
+                newInvalidCells[`${row}-${col}`] = true;
+                setIsBlocked(true);  // Block all cells except the invalid one
             }
         } else {
             newBoard[row][col] = 0;
-            delete newInvalidCells[`${row}-${col}`]; // Remove invalid mark if the cell is cleared
+            delete newInvalidCells[`${row}-${col}`];
+            setIsBlocked(false);  // Unlock all cells if cleared
         }
 
         setBoard(newBoard);
@@ -119,16 +204,20 @@ export default function Sudoku() {
                                     ? "bg-red-200"
                                     : "bg-white"
                                     }`}
-                                disabled={!invalidCells[`${rowIndex}-${colIndex}`] && cell !== 0} // Disable valid cells
+                                disabled={
+                                    isBlocked && !invalidCells[`${rowIndex}-${colIndex}`]
+                                } // Disable valid cells unless it's the invalid one
                             />
                         ))
                     )}
                 </div>
                 <button
-                    onClick={() => console.log(board)}
+                    onClick={() => {
+                        solveSudoku([...board], setBoard);
+                    }}
                     className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
                 >
-                    Check Board
+                    Solve with Trixie
                 </button>
             </div>
         </div>
