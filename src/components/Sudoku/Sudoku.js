@@ -1,6 +1,95 @@
 'use client';
 
+import { Fireworks } from "fireworks-js";
 import { useState, useRef } from "react";
+
+const startFireworks = () => {
+    const container = document.querySelector("#fireworks-container");
+    const fireworks = new Fireworks(container, {
+        speed: 2,
+        acceleration: 1.05,
+        friction: 0.98,
+        gravity: 1.5,
+        particles: 150,
+        trace: 3,
+        explosion: 5,
+        intensity: 30,
+        flickering: 50,
+        lineStyle: 'round',
+        hue: {
+            min: 0,
+            max: 360
+        },
+        delay: {
+            min: 15,
+            max: 30
+        },
+        rocketsPoint: {
+            min: 50,
+            max: 50
+        },
+        lineWidth: {
+            explosion: {
+                min: 1,
+                max: 3
+            },
+            trace: {
+                min: 1,
+                max: 2
+            }
+        },
+        brightness: {
+            min: 50,
+            max: 80
+        },
+        decay: {
+            min: 0.015,
+            max: 0.03
+        },
+        autoresize: true,
+        sound: {
+            enable: true,
+            list: [
+                'explosion0.mp3',
+                'explosion1.mp3',
+                'explosion2.mp3'
+            ],
+            min: 4,
+            max: 8
+        },
+        delay: {
+            min: 30,
+            max: 60
+        },
+        pauseOnStop: false,
+        traceSpeed: 1,
+        intensity: 30,
+        flickering: 50,
+        brightness: {
+            min: 50,
+            max: 80
+        },
+        hue: {
+            min: 0,
+            max: 360
+        },
+        delay: {
+            min: 15,
+            max: 30
+        },
+        rocketsPoint: {
+            min: 50,
+            max: 50
+        },
+        autoresize: true
+    });
+
+    fireworks.start();
+
+    setTimeout(() => {
+        fireworks.stop();
+    }, 10000); // Stop the fireworks after 5 seconds
+};
 
 const initialBoard = [
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -85,6 +174,8 @@ const solveSudoku = (board, callback, delay = 0) => {
                 callback(steps[i]);
                 i++;
                 setTimeout(executeStep, delay);
+            } else {
+                startFireworks();
             }
         };
 
@@ -151,6 +242,7 @@ export default function Sudoku() {
         // Check if the board is complete and valid
         if (Object.keys(newInvalidCells).length === 0 && isBoardComplete(newBoard)) {
             alert("You Win!");
+            startFireworks();
             window.location.reload(); // Refresh the page
         }
     };
@@ -180,7 +272,7 @@ export default function Sudoku() {
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="p-4 bg-white shadow-lg rounded-lg">
+            <div className="p-4 bg-white shadow-lg rounded-lg z-50">
                 <div className="grid grid-cols-9 gap-1">
                     {board.map((row, rowIndex) =>
                         row.map((cell, colIndex) => (
@@ -220,6 +312,7 @@ export default function Sudoku() {
                     Solve with Trixie
                 </button>
             </div>
+            <div id="fireworks-container" className="absolute inset-0"></div>
         </div>
     );
 }
