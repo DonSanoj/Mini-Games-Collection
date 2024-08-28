@@ -21,11 +21,11 @@ const dynamicLinks = [
     href: '/TicTacToe',
     backgroundColor: '#A8C9A7',
   },
-  {
-    title: 'Word Puzzle',
-    href: '/WordPuzzle',
-    backgroundColor: '#D9B7D1',
-  },
+  // {
+  //   title: 'Word Puzzle',
+  //   href: '/WordPuzzle',
+  //   backgroundColor: '#D9B7D1',
+  // },
   {
     title: 'Sudoku',
     href: '/Sudoku',
@@ -36,25 +36,30 @@ const dynamicLinks = [
     href: '/Mahjong',
     backgroundColor: '#F3D9D1',
   },
-  {
-    title: 'Solitaire',
-    href: '/Solitaire',
-    backgroundColor: '#B5B5A0',
-  },
-  {
-    title: 'Ball Shooting',
-    href: '/BallShooting',
-    backgroundColor: '#A7C4C2',
-  },
-  {
-    title: 'Checkers',
-    href: '/Checkers',
-    backgroundColor: '#9CBAA2',
-  },
+  // {
+  //   title: 'Solitaire',
+  //   href: '/Solitaire',
+  //   backgroundColor: '#B5B5A0',
+  // },
+  // {
+  //   title: 'Ball Shooting',
+  //   href: '/BallShooting',
+  //   backgroundColor: '#A7C4C2',
+  // },
+  // {
+  //   title: 'Checkers',
+  //   href: '/Checkers',
+  //   backgroundColor: '#9CBAA2',
+  // },
   {
     title: 'Snake Game',
     href: '/SnakeGame',
     backgroundColor: '#E1B2A0',
+  },
+  {
+    title: 'Car Game',
+    href: '/CarGame',
+    backgroundColor: '#B99E79',
   }
 ];
 
