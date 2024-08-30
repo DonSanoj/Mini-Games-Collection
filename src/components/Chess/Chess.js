@@ -110,18 +110,49 @@ export default function Chess() {
         );
     };
 
+    const isMoveLegal = (from, to, piece) => {
+        const [fromRow, fromCol] = from;
+        const [toRow, toCol] = to;
+
+        switch (piece.toLowerCase()) {
+            case 'p': // Pawn
+                if (piece === 'P') { // White pawn
+                    return toRow === fromRow - 1 && toCol === fromCol; // Basic forward move
+                } else { // Black pawn
+                    return toRow === fromRow + 1 && toCol === fromCol; // Basic forward move
+                }
+            case 'r': // Rook
+                return fromRow === toRow || fromCol === toCol; // Moves in a straight line
+            case 'n': // Knight
+                return (Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 1) ||
+                    (Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 2);
+            case 'b': // Bishop
+                return Math.abs(fromRow - toRow) === Math.abs(fromCol - toCol); // Moves diagonally
+            case 'q': // Queen
+                return fromRow === toRow || fromCol === toCol || // Rook-like moves
+                    Math.abs(fromRow - toRow) === Math.abs(fromCol - toCol); // Bishop-like moves
+            case 'k': // King
+                return Math.abs(fromRow - toRow) <= 1 && Math.abs(fromCol - toCol) <= 1; // Moves one square in any direction
+            default:
+                return false;
+        }
+    }
+
     const handleCellClick = (rowIndex, colIndex) => {
         if (turn !== playerSide || gameOver) return;
 
         if (selectedPosition) {
             const [selectedRow, selectedCol] = selectedPosition;
-            const newBoard = board.map(row => [...row]);
-            newBoard[rowIndex][colIndex] = board[selectedRow][selectedCol];
-            newBoard[selectedRow][selectedCol] = null;
-            setBoard(newBoard);
-            setSelectedPosition(null);
-            setTurn(playerSide === 'white' ? 'black' : 'white');
-            setMoveCount(moveCount + 1);
+            const piece = board[selectedRow][selectedCol];
+            if (isMoveLegal([selectedRow, selectedCol], [rowIndex, colIndex], piece)) {
+                const newBoard = board.map(row => [...row]);
+                newBoard[rowIndex][colIndex] = board[selectedRow][selectedCol];
+                newBoard[selectedRow][selectedCol] = null;
+                setBoard(newBoard);
+                setSelectedPosition(null);
+                setTurn(playerSide === 'white' ? 'black' : 'white');
+                setMoveCount(moveCount + 1);
+            }
         } else {
             setSelectedPosition([rowIndex, colIndex]);
         }
@@ -329,7 +360,7 @@ export default function Chess() {
                             <div className="p-3 bg-black border rounded-lg shadow-xl text-center flex flex-row gap-4 items-center justify-center">
                                 <div className=" flex flex-col text-white items-start">
                                     <h3 className=" font-semibold text-lg">Game Over</h3>
-                                    <p className=" text-md">The game ended in a draw due to time running out.</p>
+                                    <p className=" text-md">{whiteTime === 0 || blackTime === 0 ? 'The game ended due to time running out.' : 'The game is a draw.'}</p>
                                 </div>
                                 <button
                                     onClick={handleRestart} className="bg-blue-500 text-white p-3 rounded-lg"
