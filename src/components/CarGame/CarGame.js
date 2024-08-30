@@ -1,22 +1,20 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CarGame() {
-
-    const [carPosition, setCarPosition] = useState({ x: 50, y: 50 });
-    const [obstaclePosition, setObstaclePosition] = useState({ x: 0, y: 0 });
+    const [carPosition, setCarPosition] = useState({ x: 130, y: 250 });
+    const [obstacles, setObstacles] = useState([]);
     const [isCollision, setIsCollision] = useState(false);
 
-    //Function to generate random position for the obstacle
+    // Function to generate a random position for the obstacle
     const generateRandomPosition = () => {
-        const x = Math.floor(Math.random() * 27) * 10; // Multiplying by 10 to align with the grid
-        const y = Math.floor(Math.random() * 27) * 10;
-
+        const x = Math.floor(Math.random() * 27) * 10; // x position is fixed once generated
+        const y = 0; // Start from the top of the screen
         return { x, y };
     };
 
-    //Function to check for collision
+    // Function to check for collision
     const checkCollision = (carPos, obstaclePos) => {
         return (
             carPos.x < obstaclePos.x + 30 &&
@@ -24,12 +22,24 @@ export default function CarGame() {
             carPos.y < obstaclePos.y + 30 &&
             carPos.y + 50 > obstaclePos.y
         );
-    }
+    };
+
+    // Move obstacles downwards
+    const moveObstacles = () => {
+        setObstacles(prevObstacles => {
+            return prevObstacles
+                .map(obstacle => ({
+                    x: obstacle.x, // Keep the x position fixed
+                    y: obstacle.y + 10, // Move the obstacle down by 10 pixels
+                }))
+                .filter(obstacle => obstacle.y < 290); // Remove obstacles that move off the screen
+        });
+    };
 
     useEffect(() => {
-
-        //Set random position for the obstacle when the component mounts
-        setObstaclePosition(generateRandomPosition());
+        // Set initial random positions for multiple obstacles
+        const initialObstacles = Array.from({ length: 5 }, () => generateRandomPosition());
+        setObstacles(initialObstacles);
 
         const handleKeyDown = (event) => {
             const { key } = event;
@@ -47,34 +57,50 @@ export default function CarGame() {
 
         window.addEventListener('keydown', handleKeyDown);
 
+        const obstacleInterval = setInterval(() => {
+            moveObstacles();
+
+            // Randomly generate new obstacles if fewer than 10 are present
+            if (obstacles.length < 10) {
+                setObstacles(prevObstacles => [
+                    ...prevObstacles,
+                    generateRandomPosition(),
+                ]);
+            }
+        }, 100); // Adjusted obstacle movement speed
+
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            clearInterval(obstacleInterval);
         };
-
-    }, []);
+    }, [obstacles]);
 
     useEffect(() => {
-        if (checkCollision(carPosition, obstaclePosition)) {
-            setIsCollision(true);
-            // alert("Collision detected");
-            window.location.reload();
-        } else {
-            setIsCollision(false);
+        // Check for collisions with any of the obstacles
+        for (let obstacle of obstacles) {
+            if (checkCollision(carPosition, obstacle)) {
+                setIsCollision(true);
+                window.location.reload(); // Restart the game on collision
+                break;
+            }
         }
-    }, [carPosition]);
+    }, [carPosition, obstacles]);
 
     return (
         <div className="flex justify-center items-center h-screen bg-gray-200">
-            <div className=' relative w-72 h-72 bg-gray-400 border-4 border-black'>
+            <div className="relative w-72 h-72 bg-gray-400 border-4 border-black overflow-hidden">
                 <div
                     className={`absolute w-8 h-12 rounded ${isCollision ? 'bg-yellow-500' : 'bg-blue-500'
                         }`}
                     style={{ top: carPosition.y, left: carPosition.x }}
                 />
-                <div
-                    className="absolute w-8 h-8 bg-red-500 rounded"
-                    style={{ top: obstaclePosition.y, left: obstaclePosition.x }}
-                />
+                {obstacles.map((obstacle, index) => (
+                    <div
+                        key={index}
+                        className="absolute w-8 h-8 bg-red-500 rounded"
+                        style={{ top: obstacle.y, left: obstacle.x }}
+                    />
+                ))}
             </div>
         </div>
     );
