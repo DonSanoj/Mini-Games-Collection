@@ -5,7 +5,7 @@ import WithTrixie from "@/components/TicTacToe/WithTrixie";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function ticTacToe() {
+export default function TicTacToe() {
 
     const [gameMode, setGameMode] = useState(null);
 
